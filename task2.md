@@ -7,8 +7,12 @@ Tareas
   2.- Generar un archivo de log donde se mostratrá para cada usuario el nombre de usuario generado y ordenados todos de forma alfabética.
   3.- Todos los usuarios que tengan la shell fish pueden obtener privilegios de sudo.
 
+## Lanzamiento:
+```shell
+podman rm -f ubuntu && podman run -d --privileged --name ubuntu -h ubuntu -p 2222:22 ssh-ubuntu:24 && scp userlist.txt script.sh ubuntu:/home/ansible/
+```
 
-Resolucion:
+## Resolucion:
 - bucle para recorrer fichero linea a linea
 - funcion que encapsula la logica de generacion de nombre
 ```shell
@@ -40,6 +44,7 @@ done
    ((i++))
  fi
 ```
+
 
 ## Ansible
 Esta tarea creo que tendria mas sentido en Ansible
