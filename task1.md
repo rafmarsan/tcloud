@@ -1,4 +1,4 @@
-# Primera parte:
+# Primera prueba:
 El nodo réplica de la base de datos PostgreSQL no logra iniciarse correctamente
 
 El contenedor que corresponde a la réplica de la base de datos PostgreSQL no logra iniciarse correctamente, se observa que el contenedor de la réplica  se encuentra en estado Exited o Restarting de forma continua.
@@ -24,6 +24,11 @@ En el HOME de tu usuario tienes un checks.sh que comprobará si la prueba es cor
 - Asegurar que el volumen que monta `/var/lib/postgres/data` tenga los permisos correctos
 ```shell
 2026-09-25 19:33:30.094 UTC [1] FATAL: data directory "/var/lib/postgresql/data" has invalid permissions 2026-09-25 19:33:30.094 UTC [1] DETAIL: Permissions should be u=rwx (0700) or u=rwx,g=rx (0750).
+
+# ---
+docker compose stop postgres-replica
+docker inspect volume 1-postgres_pg_data_replica
+sudo chmod 0750 /var/lib/docker/volumes/1-postgres_pg_data_replica/_data
 ```
 
 ### 2.- Revisa la configuración del archivo docker-compose.yml y asegúrate de que las variables de entorno de conexión sean correctas.
@@ -32,6 +37,10 @@ En el HOME de tu usuario tienes un checks.sh que comprobará si la prueba es cor
 ```sql
 CREATE ROLE replicator WITH REPLICATION LOGIN PASSWORD 'r3pl1c4t0r';
 SELECT pg_reload_conf();
+```
+
+```shell
+docker exec postgres-master psql -U helsingor -c "CREATE ROLE replicator WITH REPLICATION LOGIN PASSWORD 'r3pl1c4t0r'; SELECT pg_reload_conf();"
 ```
 
 ### 3.- Verifica los archivos de configuración de PostgreSQL (`pg_hba.conf`, `postgresql.conf`) en el contenedor maestro para confirmar que permiten la conexión desde la réplica y `postgresql.conf` se encuentra fuera de la ruta estandar
@@ -47,6 +56,7 @@ host    replication     replicator      172.22.0.3/32           scram-sha-256
 # En la primary -> state = streaming
 SELECT pid, usename, client_addr, state, sync_state FROM pg_stat_replication;
 
+docker exec postgres-master psql -U helsingor -c "SELECT pid, usename, client_addr, state, sync_state FROM pg_stat_replication;"
 ---
 
 helsingor=# SELECT pid, usename, client_addr, state, sync_state FROM pg_stat_replication;
@@ -60,6 +70,7 @@ helsingor=# SELECT pid, usename, client_addr, state, sync_state FROM pg_stat_rep
 # En la standby -> "t"
 SELECT pg_is_in_recovery();
 
+docker exec postgres-master psql -U helsingor -c "SELECT pg_is_in_recovery();"
 ---
 
 helsingor=# SELECT pg_is_in_recovery();

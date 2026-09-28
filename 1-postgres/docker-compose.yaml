@@ -2,6 +2,9 @@
 networks:
   db_lab_net:
     driver: bridge
+    ipam:
+      config:
+        - subnet: "172.22.0.0/24"
 
 services:
   postgres-master:
@@ -17,9 +20,12 @@ services:
       POSTGRES_PASSWORD: "helsingor123"
     volumes:
       - ./master/postgres.conf:/etc/postgres/postgres.conf
-      - ./master/pg_hba.conf:/var/lib/postgresql/data/pg_hba.conf
+      - ./master/pg_hba.conf:/etc/postgres/pg_hba.conf
     # El PID 1 arranca buscando la configuración en la ruta del HOME de Ubuntu
-    command: ["postgres", "-c", "config_file=/etc/postgres/postgres.conf"]
+    command: ["postgres", 
+      "-c", "config_file=/etc/postgres/postgres.conf",
+      "-c", "hba_file=/etc/postgres/pg_hba.conf"
+    ]
 
   postgres-replica:
     user: postgres
@@ -29,8 +35,10 @@ services:
     ports:
       - "5433:5432"
     networks:
-      - db_lab_net
+      db_lab_net:
+        ipv4_address: 172.22.0.3
     environment:
+      # EL FALLO DELIBERADO: Contraseña incorrecta para romper la replicación
       PGPASSWORD: "r3pl1c4t0r"
     volumes:
       - pg_data_replica:/var/lib/postgresql/data
