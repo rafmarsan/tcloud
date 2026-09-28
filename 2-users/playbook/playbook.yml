@@ -1,4 +1,5 @@
-- hosts: ubuntu
+- name: Manage Linux users
+  hosts: "{{ server }}"
   gather_facts: false
   roles:
     - name: users

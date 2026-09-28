@@ -1,38 +1,41 @@
-Role Name
-=========
+# Users
+Creacion de usuarios sobre sistema operativos Linux
 
-A brief description of the role goes here.
 
-Requirements
-------------
+## Requirements
+- El fichero de usuarios debe tener el patron: `<Nombre completo>,<Password>,<Shell>`
+- Patrón: primera letra del nombre, seguido del primer apellido y el número 1. Si por alguna razón el nombre de usuario coincidiera se incrementaría el número
+- Dar de alta usuarios con su correspondiente password asociada.
+- Generar un archivo de log donde se mostratrá para cada usuario el nombre de usuario generado y ordenados todos de forma alfabética.
+- Todos los usuarios que tengan la shell fish pueden obtener privilegios de sudo.
 
-Any pre-requisites that may not be covered by Ansible itself or the role should be mentioned here. For instance, if the role uses the EC2 module, it may be a good idea to mention in this section that the boto package is required.
+## Role Variables
+| Variable      | Required | Default  | Choices / Type    | Comments                   |
+|---------------|----------|----------|-------------------|----------------------------|
+| userlist_file_path | yes |  | text | Path de OS donde se encuentra el fichero de usuarios |
 
-Role Variables
---------------
 
-A description of the settable variables for this role should go here, including any variables that are in defaults/main.yml, vars/main.yml, and any variables that can/should be set via parameters to the role. Any variables that are read from other roles and/or the global scope (ie. hostvars, group vars, etc.) should be mentioned here as well.
+## Dependencies
+N/A
 
-Dependencies
-------------
+## Example Playbook
+```yaml
+---
+- name: Manage Linux users
+  hosts: "{{ server }}"
+  gather_facts: false
+  roles:
+    - name: users
 
-A list of other roles hosted on Galaxy should go here, plus any details in regards to parameters that may need to be set for other roles, or variables that are used from other roles.
+```
+Lanzamiento:
+```shell
+ansible-playbook -i hosts playbook.yml -e userlist_file_path=/home/ansible/userlist.txt -e server=ubuntu
+```
 
-Example Playbook
-----------------
-
-Including an example of how to use your role (for instance, with variables passed in as parameters) is always nice for users too:
-
-    - hosts: servers
-      roles:
-         - { role: username.rolename, x: 42 }
-
-License
--------
-
+## License
 BSD
 
-Author Information
-------------------
+## Author Information
+Rafael Marin Sanchez
 
-An optional section for the role authors to include contact information, or a website (HTML is not allowed).
