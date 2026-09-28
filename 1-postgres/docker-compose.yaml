@@ -31,7 +31,6 @@ services:
     networks:
       - db_lab_net
     environment:
-      # EL FALLO DELIBERADO: Contraseña incorrecta para romper la replicación
       PGPASSWORD: "r3pl1c4t0r"
     volumes:
       - pg_data_replica:/var/lib/postgresql/data
