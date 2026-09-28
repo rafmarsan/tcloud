@@ -1,0 +1,49 @@
+---
+#- name: show user information
+#  ansible.builtin.debug:
+#    msg: "{{ userinfo }}"  
+#  register: userlist
+
+- name: Get system users
+  ansible.builtin.getent:
+    database: passwd
+  register: system_users
+
+- name: Prepare username
+  ansible.builtin.set_fact:
+    name: "{{ userinfo.name | split | first }}"
+    surname: "{{ (userinfo.name | split)[1] }}"
+
+- name: Verify if '{{ name[0]+surname }}' already exists
+  ansible.builtin.set_fact:
+    user_index: "{{ ansible_facts.getent_passwd | map('regex_search',name[0]+surname) | select('string') | list | length }}"
+
+- name: Set username
+  ansible.builtin.set_fact:
+    username: "{{ name[0]+surname+((user_index|int+1)|string) }}"
+
+- name: Create user
+  become: true
+  ansible.builtin.user:
+    name: "{{ username }}"
+    comment: "{{ userinfo.name }}"
+    create_home: true
+    shell: "{{ userinfo.shell }}"
+    password: "{{ userinfo.pass | password_hash }}"
+    update_password: on_create
+    state: present
+
+- name: Add sudo to {{ username }}
+  become: true
+  ansible.builtin.user:
+    name: "{{ username }}"
+    groups: sudo
+    append: true
+  when: "'fish' in userinfo.shell"
+
+- name: Show result
+  vars:
+    message: "- '{{ username }}' creada con exito con password '{{ userinfo.pass }}'{{ ' y con SUDO' if ('fish' in userinfo.shell) }}"
+  ansible.builtin.set_fact:
+    output_log: "{{ output_log + [message] }}"
+

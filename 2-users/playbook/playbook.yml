@@ -1,0 +1,12 @@
+- hosts: ubuntu
+  gather_facts: false
+  roles:
+    - name: users
+      
+
+  
+
+  
+  
+  
+

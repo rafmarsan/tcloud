@@ -1,0 +1,35 @@
+# tasks file for user_create
+---
+- name: Initialize log
+  ansible.builtin.set_fact:
+    output_log: []
+
+- name: read user list from file
+  community.general.read_csv:
+    path: "{{ userlist_file_path }}"
+    fieldnames: name,pass,shell
+    delimiter: ','
+  register: file_content
+
+# {% set _name = entry.name | community.general.unicode_normalize('NFKD') | regex_replace('[\\u0300-\\u036f]', '') %}
+- name: set variable
+  ansible.builtin.set_fact:
+    userlist: >-
+      {% set _list = [] %}
+      {% for entry in file_content.list %}
+        {% set _name = entry.name | clean_text %}
+        {% set _ = _list.append(entry | combine({'name': _name|lower})) %}
+      {% endfor %}
+      {{ _list | sort(attribute="name") }}
+
+- name: run user creation
+  ansible.builtin.include_tasks: create.yml
+  loop: "{{ userlist | from_yaml }}" 
+  loop_control:
+   loop_var: userinfo 
+   label: userlist.name
+
+- name: Show result
+  ansible.builtin.debug:
+    var: output_log
+
