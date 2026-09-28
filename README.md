@@ -1,6 +1,6 @@
 ## Prueba tecnica TodoEnCloud
 
-- [Tarea 1](./task1.md)
-- [Tarea 2](./task2.md)
-- [Tarea 3](./task3.md)
+- [Tarea 1](./1-postgres)
+- [Tarea 2](./2-users)
+- [Tarea 3](./3-k8s)
 
