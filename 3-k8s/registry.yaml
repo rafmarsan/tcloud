@@ -1,0 +1,4 @@
+mirrors:
+  "kubelab:5000":
+    endpoint:
+      - http://192.168.1.14:5000
