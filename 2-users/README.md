@@ -12,6 +12,45 @@ Tareas
 podman rm -f ubuntu && podman run -d --privileged --name ubuntu -h ubuntu -p 2222:22 ssh-ubuntu:24 && scp userlist.txt script.sh ubuntu:/home/ansible/
 ```
 
+## Diagrama de flujo
+```mermaid
+graph LR
+    Start([Inicio]) --> ReadFile[/Leer listado de usuarios/]
+    
+    ReadFile --> CleanData[Normalizar Texto]
+    CleanData --> SortData[Ordenar lista alfabeticamente]
+    
+    SortData --> LoopStart{¿Quedan lineas<br>por procesar?}
+    
+    LoopStart -- Sí --> ExtractFields[Extraer: Nombre, Password y Shell]
+    ExtractFields --> GenUsername[Generar nombre de usuario base<br>Ej: jsmith]
+    GenUsername --> InitCounter["Fijar indice (i = 1)"]
+    
+    InitCounter --> CheckExists{¿El usuario ya<br>existe en el sistema?}
+    CheckExists -- Sí --> Increment[i++]
+    
+    CheckExists -- No --> Provision[Crear cuenta]
+    Increment --> Provision
+    Provision --> SetSecurity[Asignar password]
+    
+    SetSecurity --> CheckShell{¿Shell tipo<br>'fish'?}
+    CheckShell -- Sí --> GrantSudo[Asignar permisos sudo]
+    
+    CheckShell -- No --> LogNormal[Registrar alta estandar]
+    
+    GrantSudo --> Notify[Generamos entrada en el log]
+    LogNormal --> Notify
+    Notify --> LoopStart
+
+    LoopStart -- No --> End([Fin])
+
+    style Start fill:#4CAF50,stroke:#388E3C,stroke-width:2px,color:#fff
+    style End fill:#F44336,stroke:#D32F2F,stroke-width:2px,color:#fff
+    style LoopStart fill:#2196F3,stroke:#1976D2,stroke-width:2px,color:#fff
+    style CheckExists fill:#2196F3,stroke:#FFA000,stroke-width:2px
+    style CheckShell fill:#2196F3,stroke:#FFA000,stroke-width:2px
+```
+
 ## Resolucion:
 - bucle para recorrer fichero linea a linea
 - funcion que encapsula la logica de generacion de nombre
