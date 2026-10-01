@@ -17,11 +17,12 @@ En el HOME de tu usuario tienes un checks.sh que comprobará si la prueba es cor
 ## Tareas
 ###  1.- Investiga y diagnostica la causa del problema que impide que la réplica de PostgreSQL se conecte al maestro.
 - Ambos contenedores tienen conexion
-- No estaba definida la conexion de la standby a nivel de `pg_hba`
-- El usuario que de la replicacion no estaba creado o podriamos haber usado el propio `helsingor`, pero es buena practica usar el principio de minimos privilegios y crearemos `replicator` al cual agregaremos la contraseña ya definida en `PGPASSWORD`
-- El fichero `postgres.conf` de la standby lo dejamos el por defecto, ya que al lanzar el comando `pg_basebackup` con la bandera `-R` ya nos configura el stream de replicacion con los datos de la copia
+- No estaba definida la conexion de la replica a nivel de `pg_hba`
+- El usuario que de la replicacion no estaba creado. Podriamos haber usado el usuario `helsingor`, pero es buena practica usar el usuario `root` y siguiendo el principio de minimos privilegios crearemos `replicator` al cual agregaremos la contraseña ya definida en `PGPASSWORD` de la replica.
+- El fichero `postgres.conf` de la replica lo dejamos el por defecto, ya que al lanzar el comando `pg_basebackup` con la bandera `-R` ya nos configura el stream de replicacion con los datos de la copia
 
-- Asegurar que el volumen que monta `/var/lib/postgres/data` tenga los permisos correctos
+
+- En la replica, por casuistica de Docker, asegurar que el volumen que monta `/var/lib/postgres/data` tenga los permisos correctos (`0700` o `0750`)
 ```shell
 2026-09-25 19:33:30.094 UTC [1] FATAL: data directory "/var/lib/postgresql/data" has invalid permissions 2026-09-25 19:33:30.094 UTC [1] DETAIL: Permissions should be u=rwx (0700) or u=rwx,g=rx (0750).
 
@@ -32,7 +33,7 @@ sudo chmod 0750 /var/lib/docker/volumes/1-postgres_pg_data_replica/_data
 ```
 
 ### 2.- Revisa la configuración del archivo docker-compose.yml y asegúrate de que las variables de entorno de conexión sean correctas.
-- Montaremos el fichero `pg_hba.conf` en su ruta para dejarlo persistente en lugar de modificarlo dentro de contenedor y poder modificarlo con mayor facilidad
+- Montaremos el fichero `pg_hba.conf` en `/etc/postgres/` para evitar errores en la inicializacion de la DB y ademas evitar modificarlo dentro de contenedor
 - Definamos el usuario `replicator` con la pass "r3pl1c4t0r" 
 ```sql
 CREATE ROLE replicator WITH REPLICATION LOGIN PASSWORD 'r3pl1c4t0r';
@@ -44,7 +45,7 @@ docker exec postgres-master psql -U helsingor -c "CREATE ROLE replicator WITH RE
 ```
 
 ### 3.- Verifica los archivos de configuración de PostgreSQL (`pg_hba.conf`, `postgresql.conf`) en el contenedor maestro para confirmar que permiten la conexión desde la réplica y `postgresql.conf` se encuentra fuera de la ruta estandar
-- Habia que agregar la linea para permitir que la standby se conecte. Lo pusimos con `trust`, pero no es buena practica, asi que forzaremos `scram-sha-25`
+- Habia que agregar la linea para permitir que la replica se conecte. Lo pusimos con `trust`, pero no es buena practica, asi que forzaremos `scram-sha-25`
 ```shell
 host    replication     replicator      172.22.0.3/32           scram-sha-256
 ```
