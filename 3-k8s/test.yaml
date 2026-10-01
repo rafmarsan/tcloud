@@ -3,12 +3,27 @@ kind: Pod
 metadata:
   name: test-registry-pod
   namespace: default
+  labels: 
+    app: MyApp
 spec:
   nodeName: k3d-k3s-default-agent-1
   containers:
   - name: test-container
-    image: kubelab:5000/ssh-ubuntu:24
+    image: kubelab:5000/webapp:latest
     ports:
-    - containerPort: 8888
+    - containerPort: 8000
   restartPolicy: Never
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: my-service
+spec:
+  selector:
+    app: MyApp
+  ports:
+    - protocol: TCP
+      port: 8888
+      targetPort: 8000
 
